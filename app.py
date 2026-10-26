@@ -139,7 +139,27 @@ DOCUMENT:
 
 @app.get("/")
 def home():
-    return render_template("index.html")
+    # The HTML file must be at templates/index.html in the deployed project.
+    try:
+        return render_template("index.html")
+    except Exception as exc:
+        # Log the real cause in Render logs, then show a helpful message
+        # instead of an uninformative 500 page.
+        app.logger.exception("Could not load homepage template")
+        return (
+            "<!doctype html><html><head><title>DocuMind setup issue</title></head>"
+            "<body style='font-family:Arial,sans-serif;max-width:760px;margin:50px auto;padding:20px'>"
+            "<h1>DocuMind is running, but the homepage could not be loaded.</h1>"
+            "<p>Make sure your GitHub repository contains "
+            "<code>templates/index.html</code> (the folder must be named "
+            "<code>templates</code>, lowercase) and that this file was committed "
+            "and deployed to Render.</p>"
+            "<p>Open Render Logs and look for <code>Could not load homepage template</code> "
+            "to see the exact error.</p>"
+            "<p>Health check: <a href='/health'>/health</a></p>"
+            "</body></html>",
+            500,
+        )
 
 
 @app.get("/health")
